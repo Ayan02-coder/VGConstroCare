@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="css/animate.compat.css" rel="stylesheet" type="text/css">
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <link href="css/styles.css" rel="stylesheet" type="text/css">
+	<link href="css/contact.css" rel="stylesheet" type="text/css">
+    <script defer src="js/scripts.js"></script>
+    <title>Contact | VG Constro care</title>
+	<link rel="icon" type="image/png" href="Images/logo.png">
+</head>
+
+<body>
+    <section id="sec-0">
+        <header class="top">
+            <div class="container">
+                 <div class="social">
+                    <a href="#" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
+                   
+                </div>
+                <p>1234-5678-9012</p>
+                <p>support@vgconstrocare.com</p>
+                <p>Mon-Sat 9:00-19:00</p>
+                
+            </div>
+        </header>
+        <header>
+            <div class="hide" id="searchBar">
+                <input type="search" name="searchBox" id="searchBox" placeholder="Type your search here..    Press [Esc] to exist">
+            </div>
+            <div class="container">  
+                <!--<img src="Images/1.png" alt="man"> -->
+                <h1>
+                    
+                    <span>V G </span>Constro Care
+                    <p>Building Dreams, Crafting Reality</p>
+                </h1>
+                <label for="menu"><i class="fas fa-bars"></i></label>
+                <input type="checkbox" id="menu">
+                <nav>
+                    <a href="index.html">Home</a>
+                    <a href="about.html">About Us</a>
+                    <a href="services.html">Our services</a>
+                    <a href="project.html">Projects</a>
+                    <a href="contact.html">Contact</a>
+                </nav>
+            </div>
+        </header>
+        <article>
+        <div class="container">
+            <h2><span>Contact US</span></h2>
+            <p>Building Dreams, Crafting Reality.</p>
+            
+        </div>
+        </article>
+    </section>
+    <section id="contact_sec-1">
+		<div class="container_c">
+			<h1>Contact Us</h1>
+			<p>We'd Love to hear from you! Whether you have inquiries about our services,need a consultation,or just want to say hello,feel free to reach out to us.</p>
+		</div>
+	</section>
+	<section id="contact_sec-2">
+		<div class="container_c">
+			<h2>Get in Touch</h2>
+			<div class="contact">
+                <p>123 HC Plot, Maharashtra IN</p>
+                <p>contact@vgconstrocare.com</p>
+                <p>+91 1234567890<br>+91 9876543210</p>
+
+            </div>
+		</div>
+	</section>
+    <section id="sec-5">
+       
+        <div class="contactUs">
+            <div class="container">
+                <aside>
+                    <blockquote>“Have Questions? Reach Out to Us!”</blockquote>
+                    <h2>Feel free to get in touch!</h2>
+                </aside>
+               <form id="contactForm">
+					<input type="text" name="name" placeholder="Your Name" required />
+					<input type="email" name="email" placeholder="Your Email" required />
+					<input type="text" name="subject" placeholder="Subject" required />
+					<textarea name="message" placeholder="Message" required></textarea>
+					<button type="submit">Send</button>
+					
+				</form>
+            </div>
+        </div>
+        
+    </section>
+    <section id="sec-6">
+        <div class="container">
+            <div class="about">
+                <h1>About Company</h1>
+                <h2>
+                    VJ Constro Care
+                    <p>Building Dreams, Crafting Reality</p>
+                </h2>
+                <p>At VG Constro Care, we are dedicated to transforming visions into tangible structures. Our commitment to excellence drives us to deliver innovative solutions for every construction challenge.</p>
+                <a href="#"><i class="fab fa-facebook-f large-icon"></i></a>
+                <a href="#"><i class="fab fa-twitter large-icon"></i></i></a>
+                <a href="#"><i class="fab fa-linkedin-in large-icon"></i></a>  
+                <a href="#"><i class="fab fa-google-plus-g large-icon"></i></a>
+                
+            </div>
+            <div class="links">
+                <h1>Explor links</h1>
+                <a href="#">Our services</a>
+                <a href="#">Help center</a>
+                <a href="#">Contact Us</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Site map</a>
+            </div>
+           
+            <div class="contact">
+                <h1>Contact us</h1>
+                <p>123 HC Plot, Maharashtra IN</p>
+                <p>contact@vgconstrocare.com</p>
+                <p>+91 1234567890<br>+91 9876543210</p>
+
+            </div>
+        </div>
+    </section>
+    <section id="sec-7">
+        <div class="container">
+            <p>Copyright @2025 | Designed by <span>Ayan Sayyad</span></p>
+        </div>
+    </section>
+
+	<script>
+		document.getElementById('contactForm').addEventListener('submit', async function (e) {
+			e.preventDefault();
+			const formData = new FormData(this);
+
+			const data = {
+				name: formData.get('name'),
+				email: formData.get('email'),
+				subject: formData.get('subject'),
+				message: formData.get('message'),
+			};
+
+			try {
+				const response = await fetch('http://localhost:3000/api/contact', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(data),
+				});
+
+			const result = await response.json();
+			alert(result.message);
+			this.reset();
+			} catch (error) {
+			alert('Failed to send message');
+			console.error(error);
+			}
+		});
+	</script>
+    <script src="js/wow.min.js"></script>
+    <script> new WOW().init();</script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

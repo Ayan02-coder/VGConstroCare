@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VG Constro Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Images/logo.png">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+      display: flex;
+    }
+    aside {
+      background-color: #343a40;
+      color: white;
+      width: 240px;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    aside h2 {
+      font-size: 1.3rem;
+      margin-bottom: 2rem;
+    }
+    aside nav a {
+      display: block;
+      padding: 10px;
+      margin: 10px 0;
+      text-decoration: none;
+      color: white;
+      border-radius: 5px;
+    }
+    aside nav a.active, aside nav a:hover {
+      background-color: #007bff;
+    }
+    main {
+      flex: 1;
+      padding: 1.5rem;
+    }
+    header {
+      background-color: #fff;
+      padding: 1rem;
+      border-bottom: 1px solid #ddd;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    #searchInput {
+      padding: 10px;
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      background: white;
+      border-collapse: collapse;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    th {
+      background-color: #f1f3f5;
+    }
+    .action-buttons button {
+      margin-right: 6px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .delete-btn { background-color: #dc3545; color: white; }
+    .reply-btn { background-color: #28a745; color: white; }
+    section { margin-top: 20px; }
+    canvas {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+    }
+	
+	/* Grid for smaller charts (2 in one line, square shape) */
+.small-chart-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.small-chart-grid canvas {
+  flex: 1 1 calc(50% - 20px); /* 2 in one row */
+  min-width: 280px;            /* Ensures a minimum width */
+  max-width: 100%;             /* Ensures canvas fills the width of the container */
+  height: 380px !important;    /* Fixed height to create square aspect ratio */
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.05);
+}
+
+    @media (max-width: 768px) {
+      aside { display: none; }
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: block;
+      }
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+      }
+      thead { display: none; }
+      td {
+        border: none;
+        margin-bottom: 1rem;
+        padding-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <h2>Admin Dashboard</h2>
+    <nav>
+      <a href="#" class="active" data-section="messagesSection">Messages</a>
+      <a href="#" data-section="analyticsSection">Analytics</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header>
+      <h1>Contact Messages</h1>
+    </header>
+
+    <input type="text" id="searchInput" placeholder="Search by Name..." onkeyup="filterMessages()" />
+
+    <section id="messagesSection">
+      <table id="messagesTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Message</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Analytics Section -->
+	<section id="analyticsSection" style="display: none;">
+				<!-- Full-width main charts -->
+				<canvas id="workChart" style="margin-bottom: 30px;"></canvas>
+				<canvas id="valueChart" style="margin-bottom: 30px;"></canvas>
+
+				<!-- Smaller grouped charts -->
+				<div class="small-chart-grid">
+					<canvas id="workStatusPieChart"></canvas>
+					<canvas id="assetDistributionChart"></canvas>
+					<canvas id="valueVsAssetChart"></canvas>
+				</div>
+	</section>
+
+  </main>
+
+  <script>
+    let messages = [];
+
+    async function fetchMessages() {
+      try {
+        const res = await fetch('/api/messages');
+        messages = await res.json();
+        displayMessages(messages);
+      } catch (err) {
+        console.error('Failed to load messages:', err);
+      }
+    }
+
+    function displayMessages(data) {
+      const tbody = document.querySelector('#messagesTable tbody');
+      tbody.innerHTML = '';
+      if (!data || data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No messages found.</td></tr>';
+        return;
+      }
+
+      data.forEach((msg, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="Name">${msg.Name}</td>
+          <td data-label="Email">${msg.Email}</td>
+          <td data-label="Subject">${msg.Subject}</td>
+          <td data-label="Message">${msg.Message}</td>
+          <td data-label="Date">${msg.Date}</td>
+          <td data-label="Actions" class="action-buttons">
+            <button class="reply-btn" onclick="replyTo('${msg.Email}')">Reply</button>
+            <button class="delete-btn" onclick="deleteMessage(${index})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterMessages() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = messages.filter(msg => msg.Name.toLowerCase().includes(query));
+      displayMessages(filtered);
+    }
+
+    function replyTo(email) {
+      window.location.href = `mailto:${email}`;
+    }
+
+    function deleteMessage(index) {
+      if (confirm("Are you sure you want to delete this message?")) {
+        messages.splice(index, 1);
+        displayMessages(messages);
+      }
+    }
+
+    fetchMessages();
+
+    document.querySelectorAll('aside nav a').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelectorAll('aside nav a').forEach(a => a.classList.remove('active'));
+        link.classList.add('active');
+
+        const target = link.dataset.section;
+        document.getElementById('messagesSection').style.display = 'none';
+        document.getElementById('analyticsSection').style.display = 'none';
+
+        if (target === 'messagesSection') {
+          document.querySelector('header h1').textContent = 'Contact Messages';
+          document.getElementById('searchInput').style.display = 'block';
+          document.getElementById(target).style.display = 'block';
+        } else {
+          document.querySelector('header h1').textContent = 'Construction Analytics';
+          document.getElementById('searchInput').style.display = 'none';
+          document.getElementById(target).style.display = 'block';
+          fetchAnalytics();
+        }
+      });
+    });
+
+    let workChart, valueChart;
+
+    function excelDateToJSDate(serial) {
+      if (!serial) return null;
+      const utc_days = Math.floor(serial - 25569);
+      const utc_value = utc_days * 86400;
+      const date_info = new Date(utc_value * 1000);
+      return date_info.toISOString().split('T')[0];
+    }
+
+    async function fetchAnalytics() {
+      const res = await fetch('/api/analytics');
+      let data = await res.json();
+      if (!data || data.length === 0) return;
+
+      data = data.map((item, index) => {
+        let date = item.Date ? excelDateToJSDate(item.Date) : `Day ${index + 1}`;
+        return {
+          label: date,
+          workDone: item["WorkDone (sqft)"] || 0,
+          workInProgress: item["WorkInProgress (sqft)"] || 0,
+          value: item["Value (INR)"] || 0,
+          assets: item["Assets Count"] || 0
+        };
+      });
+
+      const labels = data.map(d => d.label);
+      const workDone = data.map(d => d.workDone);
+      const workInProgress = data.map(d => d.workInProgress);
+      const value = data.map(d => d.value);
+      const assets = data.map(d => d.assets);
+
+      if (workChart) workChart.destroy();
+      if (valueChart) valueChart.destroy();
+
+      const ctx1 = document.getElementById('workChart').getContext('2d');
+      workChart = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: 'Work Done (sqft)', data: workDone, backgroundColor: '#28a745' },
+            { label: 'Work In Progress (sqft)', data: workInProgress, backgroundColor: '#ffc107' }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Work Progress Overview' }
+          }
+        }
+      });
+
+      const ctx2 = document.getElementById('valueChart').getContext('2d');
+      valueChart = new Chart(ctx2, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: 'Total Value (INR)', data: value, borderColor: '#007bff', tension: 0.4 },
+            { label: 'Assets Count', data: assets, borderColor: '#17a2b8', tension: 0.4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Value & Assets Over Time' }
+          }
+        }
+      });
+	  renderAdditionalCharts(data);
+
+    }
+	
+	
+	
+	
+	let workStatusPie, assetDistribution, valueVsAsset;
+
+function renderAdditionalCharts(data) {
+  const totalWorkDone = data.reduce((sum, d) => sum + d.workDone, 0);
+  const totalWorkProgress = data.reduce((sum, d) => sum + d.workInProgress, 0);
+  const assetCounts = data.map(d => d.assets);
+  const values = data.map(d => d.value);
+  const labels = data.map(d => d.label);
+
+  // Pie Chart - Work Status
+  if (workStatusPie) workStatusPie.destroy();
+  const pieCtx = document.getElementById('workStatusPieChart').getContext('2d');
+  workStatusPie = new Chart(pieCtx, {
+    type: 'pie',
+    data: {
+      labels: ['Total Work Done', 'Work In Progress'],
+      datasets: [{
+        data: [totalWorkDone, totalWorkProgress],
+        backgroundColor: ['#28a745', '#ffc107']
+      }]
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: 'Overall Work Status' }
+      }
+    }
+  });
+
+  // Doughnut Chart - Asset Distribution
+  if (assetDistribution) assetDistribution.destroy();
+  const assetCtx = document.getElementById('assetDistributionChart').getContext('2d');
+  assetDistribution = new Chart(assetCtx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Assets Count',
+        data: assetCounts,
+        backgroundColor: ['#17a2b8', '#6f42c1', '#fd7e14', '#20c997', '#007bff', '#6610f2']
+      }]
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: 'Assets Count Distribution' }
+      }
+    }
+  });
+
+  // Horizontal Bar Chart - Value vs Assets
+  if (valueVsAsset) valueVsAsset.destroy();
+  const horizCtx = document.getElementById('valueVsAssetChart').getContext('2d');
+  valueVsAsset = new Chart(horizCtx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Project Value (INR)',
+          data: values,
+          backgroundColor: '#007bff'
+        },
+        {
+          label: 'Assets Count',
+          data: assetCounts,
+          backgroundColor: '#17a2b8'
+        }
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        title: { display: true, text: 'Project Value vs Assets Count' },
+        legend: { position: 'top' }
+      },
+      responsive: true
+    }
+  });
+}
+
+  </script>
+</body>
+</html>
