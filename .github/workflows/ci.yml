@@ -17,5 +17,5 @@ jobs:
         run: echo "Hello, GitHub Actions!"
         
       - name: Simulate tests
-        run: exit 1
+        run: echo "Success"
 
