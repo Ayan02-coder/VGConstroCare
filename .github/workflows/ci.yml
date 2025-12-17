@@ -15,6 +15,7 @@ jobs:
 
       - name: Run basic command
         run: echo "Hello, GitHub Actions!"
+        
+      - name: Simulate tests
+        run: exit 1
 
-      - name: Simulate testing
-        run: echo "Running tests... Tests passed!"
