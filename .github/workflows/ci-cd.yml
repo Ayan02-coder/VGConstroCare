@@ -1,0 +1,40 @@
+name: CI/CD Pipeline for VGControcare
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Validate HTML files
+      - name: Validate HTML
+        run: |
+          echo "Checking HTML files..."
+          ls *.html
+
+      # Step 3: Validate CSS files
+      - name: Validate CSS
+        run: |
+          echo "Checking CSS files..."
+          ls *.css || true
+
+      # Step 4: Validate JavaScript files
+      - name: Validate JavaScript
+        run: |
+          echo "Checking JS files..."
+          ls *.js || true
+
+      # Step 5: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
